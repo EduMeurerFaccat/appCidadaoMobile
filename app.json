@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "br.com.appcidadao", 
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",

@@ -1,50 +1,139 @@
-# Welcome to your Expo app 👋
+<div align="center">
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# 📱 App Cidadão Mobile
+Aplicativo mobile para registro, acompanhamento e interação sobre problemas urbanos (iluminação, buracos, resíduos, etc.).
 
-## Get started
+</div>
 
-1. Install dependencies
+## 📌 Visão Geral
+O App Cidadão permite que moradores registrem ocorrências da cidade com fotos, localização e categoria do problema, acompanhem itens próximos no mapa e interajam através de comentários. O objetivo é criar um canal simples e padronizado para apoiar a gestão pública e aumentar a participação cidadã.
 
-   ```bash
-   npm install
-   ```
+## ✨ Principais Funcionalidades
+- Cadastro de problemas urbanos com:
+   - Título, descrição, data da ocorrência
+   - Geolocalização (latitude/longitude)
+   - Upload de múltiplas fotos (multipart/form-data)
+   - Associação a um tipo (ex: Iluminação Pública)
+- Mapa (Leaflet via WebView) mostrando problemas próximos
+   - Marcadores coloridos por status (ex: aberto, resolvido)
+- Autenticação com token JWT (login normal + visitante opcional)
+- Persistência de sessão com AsyncStorage
+- Comentários paginados em bottom sheet (rolagem + carregamento incremental)
+- Tema e componentes reutilizáveis (Themed*) garantindo consistência visual
 
-2. Start the app
+## 🏗️ Arquitetura & Tecnologias
+| Camada | Descrição |
+|--------|-----------|
+| Expo / React Native | Base do app multi-plataforma |
+| Expo Router | Roteamento baseado em arquivos (`app/`) |
+| Axios | Cliente HTTP com interceptores para token |
+| AsyncStorage | Persistência local (token / dados de usuário) |
+| Leaflet + WebView | Renderização de mapa e marcadores |
+| Context API | Gerência de estado global (auth, fluxo de cadastro) |
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+## 📂 Estrutura de Pastas (resumo)
+```
+app/                 Telas e rotas (file-based routing)
+components/          Componentes reutilizáveis (Themed*)
+contexts/            AuthContext, ProblemaContext
+services/            api.ts, problems.ts, tiposProblema.ts, comments...
+constants/           Cores, hooks de tema
+assets/              Fontes e imagens
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🧭 Fluxo de Cadastro de Problema
+1. Tela de detalhes: usuário preenche título, descrição, tipo e data
+2. Tela de fotos: seleciona/captura imagens
+3. Tela de localização: confirma posição no mapa
+4. Tela de finalização (`/cadastro/finalizado`): monta `FormData` e envia para `/problemas`
+5. Payload inclui `tipoProblemaId`, coordenadas, texto e imagens (`foto` múltiplas)
 
-## Learn more
+## 🔐 Autenticação
+- Login em `/auth/login` (payload: `{ email, senha }`)
+- Token recebido (chave flexível: `token` | `jwt` | `access_token` ... ) → salvo em `AsyncStorage`
+- Interceptor de requisição injeta automaticamente `Authorization: Bearer <token>`
+- Verificação inicial: `/auth/verificarToken` ao iniciar o app
+- Logout: limpa `token` e `user` + remove header default
+- Registro de visitante: gera e-mail/senha temporários e autentica automaticamente
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🗂️ Tipos de Problema
+- Endpoint: `/tipos-problema/ativos`
+- Picker salva sempre o `id` como `value`
+- Payload final envia `tipoProblemaId` (numérico) e, por compatibilidade temporária, `categoria`
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🗺️ Mapa
+- Endpoint proximidade: `/problemas/proximos?lat=..&lng=..&raioKm=...`
+- Conversão de raios (metros → km) implementada em `services/problems.ts`
+- Normalização de imagens e campos de status para lidar com respostas heterogêneas
 
-## Join the community
+## 💬 Comentários (quando implementado / expandido)
+- Listagem paginada
+- Botão para carregar mais
+- Modal tipo bottom sheet com scroll
+- Uso do header Authorization herdado do axios global
 
-Join our community of developers creating universal apps.
+## 🎨 UI & Tema
+- Componentes prefixados com `Themed` (Input, Button, Text, TextArea, Picker...) garantem coerência com modo claro/escuro
+- Evitar cores hardcoded; preferir hooks de tema
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🔌 Integração com Backend
+Arquivo principal de configuração: `services/api.ts`
+```
+baseURL: https://appcidadaobackend-production.up.railway.app/api
+timeout: 10000 ms
+```
+Para trocar ambiente (ex: local):
+```ts
+// services/api.ts
+// baseURL: 'http://192.168.x.x:8080/api'
+```
+
+## 🚀 Como Executar
+```bash
+# Instalar dependências
+npm install
+
+# Rodar em modo desenvolvimento
+npx expo start
+
+# (Opcional) Reset para esqueleto limpo
+npm run reset-project
+```
+Abra no Expo Go (QR code) ou em emuladores iOS/Android.
+
+## 🧪 Testes
+Ainda não há suíte automatizada configurada. Sugestões futuras:
+- Jest + Testing Library para componentes
+- Mock Service Worker (MSW) para chamadas HTTP
+
+## 🛠️ Troubleshooting
+| Problema | Possível causa | Ação |
+|----------|----------------|------|
+| Token não enviado | Falha ao salvar após login | Verificar logs `[api] Authorization...` |
+| Duplicidade de envio no finalizado | StrictMode em dev | Implementado ref de guarda (`hasSubmittedRef`) |
+| Imagens não aparecem | URLs relativas ou campo diverso | Ver `extractImages` em `services/problems.ts` |
+| 401 inesperado | Token expirado/ausente | Refazer login manualmente (sem auto-logout global) |
+
+## 🗺️ Roadmap (sugestões)
+- [ ] Edição/atualização de problema
+- [ ] Filtro avançado no mapa (status, tipo)
+- [ ] Notificações push para atualizações de status
+- [ ] Upload offline + fila de sincronização
+- [ ] Testes unitários e de integração
+- [ ] Acessibilidade (VoiceOver / TalkBack)
+
+## 🤝 Contribuindo
+1. Crie uma branch: `feat/minha-feature`
+2. Faça commits em português (ver `.github/copilot-instructions.md`)
+3. Abra Pull Request descrevendo mudanças
+
+## 🔒 Boas Práticas de Segurança
+- Nunca commitar tokens reais
+- Evitar logs sensíveis em produção
+- Validar dados antes de enviar (frontend já cobre senha/email)
+
+## 📄 Licença
+Definir (ex: MIT, Apache 2.0). Adicionar arquivo `LICENSE` se necessário.
+
+---
+Se precisar de ajuda para novos módulos (ex: notificações, cache offline ou testes), abra uma issue ou continue a conversa. 😉
