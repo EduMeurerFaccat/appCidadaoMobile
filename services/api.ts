@@ -4,8 +4,7 @@ import axios from 'axios';
 
 const api = axios.create({
   // baseURL: 'https://appcidadaobackend-production.up.railway.app/api', // substitua pela URL real
-  // baseURL: 'https://appcidadaobackend-production.up.railway.app/api', // substitua pela URL real
-  baseURL: 'http://192.168.2.142:8080/api',
+  baseURL: 'https://appcidadaobackend-production.up.railway.app/api', // substitua pela URL real
   timeout: 10000, // tempo máximo da requisição (opcional)
   headers: {
     'Content-Type': 'application/json',
