@@ -1,5 +1,8 @@
 # Copilot Instructions for appCidadaoMobile
 
+# Instruções para o geração de mensagem de commit ao Copilot
+- Realizar os comentários de commit em português, seguindo o padrão do projeto.
+
 ## Visão geral
 Este projeto é um app mobile Expo/React Native com Expo Router, voltado para registro e acompanhamento de problemas urbanos. O código segue arquitetura modular, separando componentes, serviços, contexto e telas por domínio.
 
