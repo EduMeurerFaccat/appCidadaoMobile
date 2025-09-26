@@ -1,75 +1,112 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 
-export default function HomeScreen() {
+import Logo from '@assets/images/icone_lixo.svg'; // ícone do app
+import { useRouter } from 'expo-router';
+import React from 'react';
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+
+export default function TelaInicial() {
+  const router = useRouter();
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.topContainer}>
+          <Logo width={'100%'} height={150} />
+        {/* <Image
+          source={{uri: '../assets/fotos/icone_lixo.svg'}} // ícone do app
+          style={styles.logo}
+        /> */}
+        <Text style={styles.title}>APP Cidadão</Text>
+        <Text style={styles.subtitle}>
+          Ajude a melhorar sua cidade. Relate problemas urbanos com facilidade.
+        </Text>
+      </View>
+
+      {/* Ilustração opcional */}
+      {/* <Image
+        source={require('./assets/city_illustration.png')}
+        style={styles.illustration}
+      /> */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.buttonPrimary} onPress={() => router.push('/cadastro/detalhes')}>
+          <Text style={styles.buttonText}>Relatar um Problema</Text>
+        </TouchableOpacity>
+
+  <TouchableOpacity style={styles.buttonSecondary} onPress={() => router.push('/problemas-proximos')}>
+          <Text style={styles.buttonTextSecondary}>Ver Problemas Próximos</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#F7F9FC',
+    padding: 24,
+    justifyContent: 'space-between',
+  },
+  topContainer: {
     alignItems: 'center',
-    gap: 8,
+    marginTop: 40,
   },
-  stepContainer: {
-    gap: 8,
+  logo: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2E3A59',
     marginBottom: 8,
+    marginTop: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    fontSize: 16,
+    color: '#6C7A93',
+    textAlign: 'center',
+    paddingHorizontal: 16,
+  },
+  illustration: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'contain',
+    marginVertical: 20,
+  },
+  buttonContainer: {
+    marginBottom: 32,
+  },
+  buttonPrimary: {
+    backgroundColor: '#1E88E5',
+    paddingVertical: 14,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  buttonSecondary: {
+    borderColor: '#1E88E5',
+    borderWidth: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  buttonTextSecondary: {
+    color: '#1E88E5',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
