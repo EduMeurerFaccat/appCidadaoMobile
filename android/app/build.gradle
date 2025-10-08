@@ -68,6 +68,9 @@ dependencies {
     // Fresco (opcional, se usar imagens)
     implementation "com.facebook.fresco:fresco:2.6.0"
 
+    implementation "androidx.core:core-splashscreen:1.0.1"
+
+
     // Hermes desativado (use JSC), ou configure manualmente se quiser Hermes
     // implementation "com.facebook.react:hermes-android:0.72.4"
 }
