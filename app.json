@@ -12,7 +12,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "br.com.appcidadao", 
+      "package": "br.com.appcidadao",
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
@@ -48,6 +48,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2ec0c34c-9868-480c-875e-6b049bc02a9d"
+      }
     }
   }
 }

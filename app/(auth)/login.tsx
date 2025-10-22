@@ -30,13 +30,14 @@ export default function LoginScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <BackgroundSVG />
+
       {/* Nome do App no topo, fixo */}
       <ThemedText type="title" style={styles.appName}>
         APP Cidadão
       </ThemedText>
-      {/* Fundo SVG */}
-      <ThemedText type='title' style={{}}>Login</ThemedText>
-      <BackgroundSVG />
+
+      <ThemedText type="title" style={styles.loginTitle}>Login</ThemedText>
 
       {/* Formulário de Login */}
       <ThemedView style={styles.form}>
@@ -81,8 +82,8 @@ function BackgroundSVG() {
     <Svg
       width="100%"
       height="300"
-      
-      style={{ position: 'absolute', top: 0 }}
+      pointerEvents="none"
+      style={styles.backgroundSvg}
     >
       <Path
         fill="#6C63FF"
@@ -95,9 +96,10 @@ function BackgroundSVG() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     position: 'relative',
+    paddingTop: 160,
   },
   appName: {
     position: 'absolute',
@@ -109,6 +111,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     zIndex: 2,
     fontFamily: 'SpaceMono-Regular', // Fonte personalizada
+  },
+  loginTitle: {
+    marginBottom: 24,
+    zIndex: 2,
   },
   form: {
     width: '100%',
@@ -129,5 +135,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
     borderColor: '#6C63FF',
     borderWidth: 1,
+  },
+  backgroundSvg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 300,
+    zIndex: 0,
   },
 });

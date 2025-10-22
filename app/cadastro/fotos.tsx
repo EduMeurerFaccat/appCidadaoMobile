@@ -3,28 +3,120 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useProblem } from '@/contexts/ProblemaContext';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { router } from 'expo-router';
-import { Image, KeyboardAvoidingView, Platform, TouchableOpacity, View } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Linking,
+  Modal,
+  Platform,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function FotosProblema() {
   const { setData, data } = useProblem();
+  const cameraRef = useRef<CameraView | null>(null);
+  const [cameraVisible, setCameraVisible] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState<'back' | 'front'>('back');
+  const [permission, requestPermission] = useCameraPermissions();
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-    });
+  const showPermissionDeniedAlert = useCallback(() => {
+    Alert.alert(
+      'Permissão necessária',
+      'Precisamos de acesso à câmera para registrar as fotos do problema. Ajuste as permissões nas configurações do sistema.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Abrir configurações',
+          onPress: () => {
+            if (Linking.openSettings) {
+              Linking.openSettings();
+            }
+          },
+        },
+      ],
+    );
+  }, []);
 
-    if (!result.canceled && result.assets.length > 0) {
-      const uri = result.assets[0].uri;
+  const ensureCameraPermission = useCallback(async () => {
+    if (permission?.granted) {
+      return true;
+    }
+
+    if (permission && !permission.canAskAgain) {
+      showPermissionDeniedAlert();
+      return false;
+    }
+
+    const response = await requestPermission();
+
+    if (response.granted) {
+      return true;
+    }
+
+    if (!response.canAskAgain) {
+      showPermissionDeniedAlert();
+    } else {
+      Alert.alert('Permissão negada', 'Não foi possível liberar o acesso à câmera.');
+    }
+
+    return false;
+  }, [permission, requestPermission, showPermissionDeniedAlert]);
+
+  const handleOpenCamera = useCallback(async () => {
+    if (data.fotos && data.fotos.length >= 4) {
+      return;
+    }
+
+    const isAllowed = await ensureCameraPermission();
+
+    if (!isAllowed) {
+      return;
+    }
+
+    setCameraVisible(true);
+  }, [data.fotos, ensureCameraPermission]);
+
+  const handleCapturePhoto = useCallback(async () => {
+    if (!cameraRef.current || isCapturing) {
+      return;
+    }
+
+    try {
+      setIsCapturing(true);
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
+
+      if (!photo?.uri) {
+        return;
+      }
+
+      const maxWidth = 1280;
+      const shouldResize = typeof photo.width === 'number' && photo.width > maxWidth;
+
+      const manipulated = await manipulateAsync(
+        photo.uri,
+        shouldResize ? [{ resize: { width: maxWidth } }] : [],
+        { compress: 0.6, format: SaveFormat.JPEG },
+      );
 
       setData(prev => ({
         ...prev,
-        fotos: [...(prev.fotos || []), uri],
+        fotos: [...(prev.fotos || []), manipulated.uri].slice(0, 4),
       }));
+      setCameraVisible(false);
+    } catch (error) {
+      console.error('Erro ao capturar foto', error);
+      Alert.alert('Não foi possível capturar a foto. Tente novamente.');
+    } finally {
+      setIsCapturing(false);
     }
-  };
+  }, [isCapturing, setData]);
 
   function removerFoto(index: number): void {
     setData(prev => {
@@ -76,7 +168,7 @@ export default function FotosProblema() {
             ))
           ) : (
             <TouchableOpacity
-              onPress={pickImage}
+              onPress={handleOpenCamera}
               style={{
                 width: '100%',
                 aspectRatio: 1,
@@ -94,9 +186,8 @@ export default function FotosProblema() {
             </TouchableOpacity>
           )}
         </View>
-
         {data.fotos && data.fotos?.length > 0 && data.fotos.length < 4 && (
-          <ThemedButton title="Adicionar mais fotos" onPress={pickImage} />
+          <ThemedButton title="Adicionar mais fotos" onPress={handleOpenCamera} />
         )}
         {!data.fotos || data.fotos.length === 0 ? (
           <ThemedText style={{ color: '#c62828', marginTop: 8, fontSize: 12 }}>Adicione pelo menos uma foto para continuar.</ThemedText>
@@ -114,6 +205,77 @@ export default function FotosProblema() {
           />
         </View>
       </ThemedView>
+
+      <Modal
+        animationType="slide"
+        presentationStyle="fullScreen"
+        visible={cameraVisible}
+        onRequestClose={() => setCameraVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: '#000' }}>
+          <CameraView
+            ref={cameraRef}
+            style={{ flex: 1 }}
+            facing={cameraFacing}
+          >
+            <View
+              style={{
+                position: 'absolute',
+                top: 50,
+                left: 20,
+                right: 20,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <TouchableOpacity onPress={() => setCameraVisible(false)}>
+                <Ionicons name="close" size={32} color="#fff" />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => setCameraFacing(prev => (prev === 'back' ? 'front' : 'back'))}>
+                <Ionicons name="camera-reverse-outline" size={32} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </CameraView>
+
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 40,
+              left: 0,
+              right: 0,
+              alignItems: 'center',
+              gap: 16,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleCapturePhoto}
+              disabled={isCapturing}
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                borderWidth: 6,
+                borderColor: '#fff',
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: isCapturing ? '#aaa' : '#fff',
+              }}
+            >
+              <View
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 26,
+                  backgroundColor: isCapturing ? '#d1d1d1' : '#fff',
+                }}
+              />
+            </TouchableOpacity>
+            <ThemedText style={{ color: '#fff' }}>{`${data.fotos?.length || 0}/4 fotos`}</ThemedText>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
