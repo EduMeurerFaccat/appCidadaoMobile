@@ -29,8 +29,6 @@ allprojects {
 
     google()
     mavenCentral()
-    // JitPack às vezes apresenta instabilidade em um dos domínios, manter ambos garante fallback.
-    maven { url 'https://jitpack.io' }
     maven { url 'https://www.jitpack.io' }
   }
 }
